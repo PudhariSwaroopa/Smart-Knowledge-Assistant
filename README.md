@@ -1,395 +1,181 @@
-# Smart Knowledge Assistant (NLP RAG Project)
+# 🧠 Smart Knowledge Assistant (PDF RAG)
 
-An **NLP-based Smart Knowledge Assistant** that answers questions from structured datasets using **Retrieval-Augmented Generation (RAG)**.
-The system loads **CSV and JSON datasets**, converts them into embeddings, stores them in **Pinecone vector database**, and retrieves relevant information to generate answers using **LLM (Ollama/Llama3)**.
-
----
-
-## Project Overview
-
-This project demonstrates how to build a **knowledge-based question answering system** using modern NLP tools.
-
-Pipeline:
-
-```
-Dataset (CSV + JSON)
-        ↓
-Document Loader
-        ↓
-Text Cleaning & Filtering
-        ↓
-Text Chunking
-        ↓
-Embeddings (Sentence Transformers)
-        ↓
-Pinecone Vector Database
-        ↓
-Retriever
-        ↓
-LLM (Llama3 via Ollama)
-        ↓
-Answer Generation
-```
+A powerful **Retrieval-Augmented Generation (RAG)** chatbot built with **Streamlit**, **LangChain**, and **Pinecone**.  
+This assistant allows users to upload PDF documents and ask complex questions, providing accurate answers based on retrieved context using **Ollama (Llama 3)**.
 
 ---
 
-# Folder Structure
+# 🚀 Features
 
-```
-Smart-Knowledge-Assistant
-│
-├── data/
-│   ├── archive(1)/
-│   ├── archive(2)/
-│   └── archive(3)/
-│
-├── smart-knowledge-assistant.ipynb
-├── requirements.txt
-├── .env
-└── README.md
-```
+- **PDF Ingestion:** Automatically loads and processes PDF files from the `data/` directory.
+- **Vector Search:** Uses **Pinecone** for high-speed vector retrieval.
+- **Local LLM:** Powered by **Ollama (Llama 3)** for privacy and local processing.
+- **Smart UI:** Interactive chat interface built with **Streamlit**.
 
 ---
 
-# Prerequisites
+# 🛠️ Tech Stack
 
-Install the following software:
-
-* Python **3.10 or 3.11** (recommended)
-* Git
-* VS Code or Jupyter Notebook
-* Ollama
-
-Download Ollama:
-
-https://ollama.com/download
-
-Pull the Llama3 model:
-
-```
-ollama pull llama3
-```
+| Component | Technology |
+|----------|------------|
+| Framework | LangChain |
+| Frontend | Streamlit |
+| Vector Database | Pinecone |
+| LLM | Ollama (Llama 3) |
+| Embeddings | HuggingFace (all-MiniLM-L6-v2) |
 
 ---
 
-# Step 1: Clone the Repository
+# 📋 Prerequisites
 
-```
-git clone <your-repository-url>
+Before running the project, ensure you have:
+
+1. **Python 3.12 (recommended)**  
+   https://www.python.org/
+
+2. **Ollama installed**  
+   https://ollama.com/
+
+3. **Pinecone API Key**  
+   https://www.pinecone.io/
+
+---
+
+# ⚙️ Installation & Setup
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/your-username/Smart-Knowledge-Assistant.git
 cd Smart-Knowledge-Assistant
 ```
 
 ---
 
-# Step 2: Create Virtual Environment
+### 2️⃣ Create a Virtual Environment
 
-```
-python -m venv smart-knowledge
-```
-
-Activate environment:
-
-Windows:
-
-```
-smart-knowledge\Scripts\activate
+```bash
+python -m venv venv
 ```
 
-Mac/Linux:
+Activate it:
 
+**Windows (Git Bash)**
+
+```bash
+source venv/Scripts/activate
 ```
-source smart-knowledge/bin/activate
+
+**Windows (CMD)**
+
+```bash
+venv\Scripts\activate
 ```
 
 ---
 
-# Step 3: Install Dependencies
+### 3️⃣ Install Dependencies
 
-Install required libraries:
-
-```
+```bash
 pip install -r requirements.txt
 ```
 
-Example dependencies:
+---
+
+### 4️⃣ Configure Environment Variables
+
+Create a `.env` file in the project root:
 
 ```
-langchain
-langchain-community
-langchain-text-splitters
-pinecone-client
-sentence-transformers
-pypdf
-python-dotenv
-pandas
+PINECONE_API_KEY=your_pinecone_api_key_here
 ```
 
 ---
 
-# Step 4: Setup Environment Variables
+### 5️⃣ Prepare Your Data
 
-Create a `.env` file in the project root.
-
-Example:
-
-```
-PINECONE_API_KEY=your_pinecone_api_key
-```
-
----
-
-# Step 5: Add Dataset
-
-Place datasets inside the **data folder**.
+Place your PDF documents inside the `data/` folder.
 
 Example:
 
 ```
 data/
-   archive(1)/
-       file1.csv
-       file2.json
-   archive(2)/
-       file3.csv
-   archive(3)/
-       file4.json
+ └── CompleteAIML.pdf
 ```
 
 ---
 
-# Step 6: Load Datasets
+### 6️⃣ Pull the LLM Model
 
-The system loads CSV and JSON files recursively.
-
-Example loaders:
-
-### CSV Loader
-
-```
-from langchain_community.document_loaders import DirectoryLoader, CSVLoader
-
-loader = DirectoryLoader(
-    "data",
-    glob="**/*.csv",
-    loader_cls=CSVLoader
-)
-
-documents = loader.load()
-```
-
-### JSON Loader
-
-```
-from langchain_community.document_loaders import JSONLoader
-
-loader = DirectoryLoader(
-    "data",
-    glob="**/*.json",
-    loader_cls=JSONLoader,
-    loader_kwargs={"jq_schema": ".", "text_content": False}
-)
+```bash
+ollama pull llama3
 ```
 
 ---
 
-# Step 7: Filter Documents
+# 🏃 Running the Application
 
-Reduce metadata and keep only required fields.
+Start the Streamlit app:
+
+```bash
+python -m streamlit run app.py
+```
+
+Open the browser:
 
 ```
-from langchain_core.documents import Document
-
-def filter_to_minimal_docs(docs):
-    minimal_docs = []
-
-    for doc in docs:
-        src = doc.metadata.get("source")
-
-        minimal_docs.append(
-            Document(
-                page_content=doc.page_content,
-                metadata={"source": src}
-            )
-        )
-
-    return minimal_docs
+http://localhost:8501
 ```
 
 ---
 
-# Step 8: Split Documents into Chunks
+# 📂 Project Structure
 
 ```
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,
-    chunk_overlap=100
-)
-
-text_chunks = text_splitter.split_documents(minimal_docs)
-```
-
----
-
-# Step 9: Generate Embeddings
-
-```
-from langchain_community.embeddings import HuggingFaceEmbeddings
-
-embedding = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
-```
-
-Embedding dimension = **384**
-
----
-
-# Step 10: Setup Pinecone Vector Database
-
-```
-from pinecone import Pinecone, ServerlessSpec
-
-pc = Pinecone(api_key=PINECONE_API_KEY)
-
-index_name = "smart-knowledge-assistant"
-
-if not pc.has_index(index_name):
-    pc.create_index(
-        name=index_name,
-        dimension=384,
-        metric="cosine",
-        spec=ServerlessSpec(cloud="aws", region="us-east-1")
-    )
-
-index = pc.Index(index_name)
+Smart-Knowledge-Assistant
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── data/
+│   └── CompleteAIML.pdf
+├── smart-knowledge-assistant.ipynb
+└── .env
 ```
 
 ---
 
-# Step 11: Store Embeddings in Pinecone
+# 🧠 Architecture
 
 ```
-from langchain_pinecone import PineconeVectorStore
-
-docsearch = PineconeVectorStore.from_documents(
-    documents=text_chunks,
-    embedding=embedding,
-    index_name=index_name
-)
-```
-
----
-
-# Step 12: Create Retriever
-
-```
-retriever = docsearch.as_retriever(
-    search_type="mmr",
-    search_kwargs={"k":8}
-)
-```
-
----
-
-# Step 13: Load LLM
-
-```
-from langchain_community.llms import Ollama
-
-chatmodel = Ollama(model="llama3")
+User Question
+      ↓
+Streamlit Web Interface
+      ↓
+PDF Loader (LangChain)
+      ↓
+Text Splitter
+      ↓
+Embeddings (MiniLM)
+      ↓
+Pinecone Vector Database
+      ↓
+Retriever
+      ↓
+Ollama Llama3
+      ↓
+Final Answer
 ```
 
 ---
 
-# Step 14: Create RAG Chain
+# 📄 License
 
-```
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate
-
-system_prompt = (
-"You are an AI assistant for question answering tasks. "
-"Use the context to answer the question."
-)
-
-prompt = ChatPromptTemplate.from_messages(
-[
-("system", system_prompt),
-("human", "{input}")
-]
-)
-
-question_answer_chain = create_stuff_documents_chain(chatmodel, prompt)
-
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-```
+This project is licensed under the **MIT License**.
 
 ---
 
-# Step 15: Ask Questions
+# ⭐ Author
 
-```
-response = rag_chain.invoke(
-{"input": "What is artificial intelligence?"}
-)
-
-print(response["answer"])
-```
-
----
-
-# Example Query
-
-Input:
-
-```
-What is machine learning?
-```
-
-Output:
-
-```
-Machine learning is a branch of artificial intelligence that enables systems to learn from data and improve performance without being explicitly programmed.
-```
-
----
-
-# Technologies Used
-
-* Python
-* LangChain
-* Pinecone
-* Sentence Transformers
-* Ollama
-* Llama3
-* Pandas
-* Jupyter Notebook
-
----
-
-# Features
-
-* Supports **CSV and JSON datasets**
-* Uses **vector embeddings for semantic search**
-* Implements **Retrieval-Augmented Generation (RAG)**
-* Works locally with **Ollama Llama3**
-* Scalable with Pinecone vector database
-
----
-
-# Future Improvements
-
-* Add Streamlit UI
-* Add document summarization
-* Support PDF datasets
-* Improve chunking for tabular datasets
-
----
-
-# Author
-
-Pudhari Swaroopa
-NLP Academic Project – Smart Knowledge Assistant
+**Pudhari Swaroopa**  
+NLP Project – Smart Knowledge Assistant
